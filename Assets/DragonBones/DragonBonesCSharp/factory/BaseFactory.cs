@@ -104,7 +104,7 @@ namespace DragonBones
             return true;
         }
         /// <private/>
-        protected virtual TextureData _GetTextureData(string textureAtlasName, string textureName)
+        protected TextureData _GetTextureData(string textureAtlasName, string textureName)
         {
             if (this._textureAtlasDataMap.ContainsKey(textureAtlasName))
             {
@@ -299,7 +299,7 @@ namespace DragonBones
             return this.BuildArmature(displayData.path, dataPackage != null ? dataPackage.dataName : "", "", dataPackage != null ? dataPackage.textureAtlasName : "");
         }
         /// <private/>
-        protected virtual object _GetSlotDisplay(BuildArmaturePackage dataPackage, DisplayData displayData, DisplayData rawDisplayData, Slot slot)
+        protected object _GetSlotDisplay(BuildArmaturePackage dataPackage, DisplayData displayData, DisplayData rawDisplayData, Slot slot)
         {
             var dataName = dataPackage != null ? dataPackage.dataName : displayData.parent.parent.parent.name;
             object display = null;
@@ -549,7 +549,7 @@ namespace DragonBones
         /// <see cref="DragonBones.DragonBonesData"/>
         /// <version>DragonBones 3.0</version>
         /// <language>zh_CN</language>
-        public virtual void AddDragonBonesData(DragonBonesData data, string name = null)
+        public void AddDragonBonesData(DragonBonesData data, string name = null)
         {
             name = !string.IsNullOrEmpty(name) ? name : data.name;
             if (this._dragonBonesDataMap.ContainsKey(name))
@@ -648,7 +648,7 @@ namespace DragonBones
         /// <see cref="DragonBones.TextureAtlasData"/>
         /// <version>DragonBones 3.0</version>
         /// <language>zh_CN</language>
-        public virtual void AddTextureAtlasData(TextureAtlasData data, string name = null)
+        public void AddTextureAtlasData(TextureAtlasData data, string name = null)
         {
             name = !string.IsNullOrEmpty(name) ? name : data.name;
             var textureAtlasList = (this._textureAtlasDataMap.ContainsKey(name)) ?
@@ -905,7 +905,7 @@ namespace DragonBones
         /// </example>
         /// <version>DragonBones 4.5</version>
         /// <language>zh_CN</language>
-        public virtual bool ReplaceSlotDisplay(string dragonBonesName,
+        public bool ReplaceSlotDisplay(string dragonBonesName,
                                         string armatureName,
                                         string slotName,
                                         string displayName,
@@ -928,7 +928,7 @@ namespace DragonBones
             return true;
         }
         /// <private/>
-        public virtual bool ReplaceSlotDisplayList(string dragonBonesName, string armatureName, string slotName, Slot slot)
+        public bool ReplaceSlotDisplayList(string dragonBonesName, string armatureName, string slotName, Slot slot)
         {
             var armatureData = this.GetArmatureData(armatureName, dragonBonesName);
             if (armatureData == null || armatureData.defaultSkin == null)

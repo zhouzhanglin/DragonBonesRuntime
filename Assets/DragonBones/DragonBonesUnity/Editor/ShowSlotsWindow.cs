@@ -31,7 +31,7 @@ namespace DragonBones
     [System.Serializable]
     public class SlotItemData
     {
-        public USlot slot;
+        public UnitySlot slot;
         public int sumLevel;
         public bool isSelected;
     }
@@ -41,10 +41,10 @@ namespace DragonBones
         private const float WIDTH = 400.0f;
         private const float HEIGHT = 200.0f;
         private readonly List<SlotItemData> _slotItems = new List<SlotItemData>();
-        private UArmatureComponent _armatureComp;
+        private UnityArmatureComponent _armatureComp;
 
         private Vector2 _scrollPos;
-        public static void OpenWindow(UArmatureComponent armatureComp)
+        public static void OpenWindow(UnityArmatureComponent armatureComp)
         {
             if (armatureComp == null)
             {
@@ -61,7 +61,7 @@ namespace DragonBones
         {
             var slots = armature.GetSlots();
 
-            foreach (USlot slot in slots)
+            foreach (UnitySlot slot in slots)
             {
                 var slotItem = new SlotItemData();
                 slotItem.slot = slot;
@@ -95,7 +95,7 @@ namespace DragonBones
                     if (slotItem.isSelected && slot.renderDisplay != null && !slot.renderDisplay.activeSelf)
                     {
                         slot.DisallowCombineMesh();
-                        var combineMeshs = (slot.armature.proxy as UArmatureComponent).GetComponent<UCombineMeshs>();
+                        var combineMeshs = (slot.armature.proxy as UnityArmatureComponent).GetComponent<UnityCombineMeshs>();
                         if (combineMeshs != null)
                         {
                             combineMeshs.BeginCombineMesh();

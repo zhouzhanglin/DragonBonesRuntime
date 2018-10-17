@@ -5,8 +5,8 @@ using UnityEditor;
 
 namespace DragonBones
 {
-    [CustomEditor(typeof(UDragonBonesData))]
-    public class UDragonBonesDataEditor : Editor {
+    [CustomEditor(typeof(UnityDragonBonesData))]
+    public class UnityDragonBonesDataEditor : Editor {
 
         private PreviewRenderUtility m_PreviewUtility;
         Camera PreviewUtilityCamera {
@@ -27,8 +27,8 @@ namespace DragonBones
         Vector3 cameraPositionGoal = new Vector3(0, 0, -10);
         double cameraAdjustEndFrame = 0;
 
-        private UDragonBonesData _unityDragonbonesData;
-        private UArmatureComponent _previewUnityArmatureComp;
+        private UnityDragonBonesData _unityDragonbonesData;
+        private UnityArmatureComponent _previewUnityArmatureComp;
 
         private int _armatureIndex;
 
@@ -43,7 +43,7 @@ namespace DragonBones
         private AnimationData _animData;
 
         void OnEnable(){
-            _unityDragonbonesData = target as UDragonBonesData;
+            _unityDragonbonesData = target as UnityDragonBonesData;
             EditorApplication.update -= EditorUpdate;
             EditorApplication.update += EditorUpdate;
             this._nowTime = System.DateTime.Now.Ticks;
@@ -57,11 +57,15 @@ namespace DragonBones
         /// 标题
         public override GUIContent GetPreviewTitle()
         {
-            if (_previewUnityArmatureComp != null && !string.IsNullOrEmpty(_previewUnityArmatureComp.ArmatureName))
+            if (_previewUnityArmatureComp != null && !string.IsNullOrEmpty(_previewUnityArmatureComp.armatureName))
             {
-                return new GUIContent(_previewUnityArmatureComp.ArmatureName);
+                return new GUIContent(_previewUnityArmatureComp.armatureName);
             }
-            return new GUIContent(_unityDragonbonesData.dataName);
+            else if (_unityDragonbonesData != null)
+            {
+                return new GUIContent(_unityDragonbonesData.dataName);
+            }
+            return new GUIContent("");
         }
 
         public override void OnPreviewSettings()
@@ -94,7 +98,7 @@ namespace DragonBones
             //draw animation progress
             if (_animData!=null)
             {
-                AnimationState state = _previewUnityArmatureComp.animation.GetState(_previewUnityArmatureComp.AnimationName);
+                AnimationState state = _previewUnityArmatureComp.animation.GetState(_previewUnityArmatureComp.animationName);
                 float time = 0;
                 if (state != null)
                 {
@@ -132,7 +136,7 @@ namespace DragonBones
                     _armatureIndex = armatureIndex;
                     var armatureName = _armatureNames[_armatureIndex];
                     _previewUnityArmatureComp.unityData = _unityDragonbonesData;
-                    UDragonBonesEditor.ChangeArmatureData(_previewUnityArmatureComp, armatureName, _unityDragonbonesData.name);
+                    UnityEditor.ChangeArmatureData(_previewUnityArmatureComp, armatureName, _unityDragonbonesData.dataName);
                     UpdateParameters();
                     SetEnabledRecursive(_previewUnityArmatureComp.gameObject,false);
                 }
@@ -164,13 +168,13 @@ namespace DragonBones
                         using (new GUILayout.HorizontalScope())
                         {
                             AnimationData animData = _previewUnityArmatureComp.armature.armatureData.GetAnimation(animation);
-                            bool active = _previewUnityArmatureComp.AnimationName == animation;
+                            bool active = _previewUnityArmatureComp.animationName == animation;
                             if (GUILayout.Button("\u25BA", active ? activePlayButtonStyle : idlePlayButtonStyle, GUILayout.Width(24)))
                             {
                                 this._animData = animData;
                                 if (!_previewUnityArmatureComp.animation.isPlaying)
                                 {
-                                    _previewUnityArmatureComp.AnimationName = animation;
+                                    _previewUnityArmatureComp.animationName = animation;
                                     _previewUnityArmatureComp.animation.Play(animation);
                                 }
                                 else
@@ -253,9 +257,9 @@ namespace DragonBones
                 return;
             DestroyPreviewInstances();
             // 绘制场景上已经存在的游戏对象
-            DragonBonesData dragonBonesData = UFactory.factory.LoadData(_unityDragonbonesData,false);
-            _unityDragonbonesData.dbData = dragonBonesData;
-            _previewUnityArmatureComp = UFactory.factory.BuildArmatureComponent(_unityDragonbonesData,dragonBonesData.armatureNames[0]);
+            DragonBonesData dragonBonesData = UnityFactory.factory.LoadData(_unityDragonbonesData,false);
+           
+            _previewUnityArmatureComp = UnityFactory.factory.BuildArmatureComponent(dragonBonesData.armatureNames[0],_unityDragonbonesData.dataName);
             if(_previewUnityArmatureComp!=null){
                 _previewUnityArmatureComp.gameObject.hideFlags = HideFlags.HideAndDontSave;
                 SetEnabledRecursive(_previewUnityArmatureComp.gameObject,false);
@@ -333,8 +337,8 @@ namespace DragonBones
                 return;
 
             if (calculateMixTime) {
-                if (_previewUnityArmatureComp.animation!=null&&!string.IsNullOrEmpty(_previewUnityArmatureComp.AnimationName))
-                    cameraAdjustEndFrame = EditorApplication.timeSinceStartup + _previewUnityArmatureComp.animation.GetState(_previewUnityArmatureComp.AnimationName).fadeTotalTime;
+                if (_previewUnityArmatureComp.animation!=null&&!string.IsNullOrEmpty(_previewUnityArmatureComp.animationName))
+                    cameraAdjustEndFrame = EditorApplication.timeSinceStartup + _previewUnityArmatureComp.animation.GetState(_previewUnityArmatureComp.animationName).fadeTotalTime;
             }
 
             var rect = _previewUnityArmatureComp.armature.armatureData.aabb;
@@ -360,6 +364,8 @@ namespace DragonBones
 
 
         void EditorUpdate () {
+            if (_previewUnityArmatureComp == null)
+                return;
 
             _previewUnityArmatureComp.transform.localPosition = (Vector3)_pos;
 
