@@ -47,6 +47,8 @@ namespace DragonBones
             EditorApplication.update -= EditorUpdate;
             EditorApplication.update += EditorUpdate;
             this._nowTime = System.DateTime.Now.Ticks;
+
+            InitPreview();
         }
 
         public override bool HasPreviewGUI()
@@ -146,9 +148,16 @@ namespace DragonBones
         void DrawAnimations(){
             if (_animationNames != null && _animationNames.Count > 0)
             {
-//                if (GUILayout.Button("Setup Pose", GUILayout.Width(105), GUILayout.Height(18))) {
-//                    
-//                }
+                if (GUILayout.Button("Setup Pose", GUILayout.Width(105), GUILayout.Height(18))) {
+                    if (_previewUnityArmatureComp != null)
+                    {
+                        var armatureName = _armatureNames[_armatureIndex];
+                        _previewUnityArmatureComp.unityData = _unityDragonbonesData;
+                        UnityEditor.ChangeArmatureData(_previewUnityArmatureComp, armatureName, _unityDragonbonesData.dataName);
+                        UpdateParameters();
+                        SetEnabledRecursive(_previewUnityArmatureComp.gameObject,false);
+                    }
+                }
 
                 idlePlayButtonStyle = idlePlayButtonStyle ?? new GUIStyle(EditorStyles.miniButton);
                 if (activePlayButtonStyle == null) {
@@ -172,15 +181,8 @@ namespace DragonBones
                             if (GUILayout.Button("\u25BA", active ? activePlayButtonStyle : idlePlayButtonStyle, GUILayout.Width(24)))
                             {
                                 this._animData = animData;
-                                if (!_previewUnityArmatureComp.animation.isPlaying)
-                                {
-                                    _previewUnityArmatureComp.animationName = animation;
-                                    _previewUnityArmatureComp.animation.Play(animation);
-                                }
-                                else
-                                {
-                                    _previewUnityArmatureComp.animation.Stop();
-                                }
+                                _previewUnityArmatureComp.animationName = animation;
+                                _previewUnityArmatureComp.animation.Play(animation);
                             }
                             string frameCountString = (_frameRate > 0) ? ("(" + (Mathf.RoundToInt(animData.duration/_frameRate)) + ")").PadLeft(12, ' ') : string.Empty;
                             EditorGUILayout.LabelField(new GUIContent(animation), new GUIContent(animData.duration.ToString("f3") + "s" + frameCountString));
@@ -222,6 +224,11 @@ namespace DragonBones
 
         private void InitPreview()
         {
+            CreatePreviewUtility();
+            // 创建预览的游戏对象
+            CreatePreviewInstances();
+        }
+        private void CreatePreviewUtility(){
             if (m_PreviewUtility == null)
             {
                 const int previewLayer = 31;
@@ -237,9 +244,6 @@ namespace DragonBones
                 c.nearClipPlane = 0.01f;
                 c.farClipPlane = 1000f; 
             }
-
-            // 创建预览的游戏对象
-            CreatePreviewInstances();
         }
 
         private void DestroyPreview()
@@ -255,7 +259,6 @@ namespace DragonBones
         {
             if (_previewUnityArmatureComp != null)
                 return;
-            DestroyPreviewInstances();
             // 绘制场景上已经存在的游戏对象
             DragonBonesData dragonBonesData = UnityFactory.factory.LoadData(_unityDragonbonesData,false);
            
@@ -264,6 +267,8 @@ namespace DragonBones
                 _previewUnityArmatureComp.gameObject.hideFlags = HideFlags.HideAndDontSave;
                 SetEnabledRecursive(_previewUnityArmatureComp.gameObject,false);
                 UpdateParameters();
+
+                AdjustCameraGoals(true);
             }
         }
 
@@ -341,10 +346,12 @@ namespace DragonBones
                     cameraAdjustEndFrame = EditorApplication.timeSinceStartup + _previewUnityArmatureComp.animation.GetState(_previewUnityArmatureComp.animationName).fadeTotalTime;
             }
 
-            var rect = _previewUnityArmatureComp.armature.armatureData.aabb;
-            cameraOrthoGoal = rect.y;
-            UnityEngine.Rect r = new Rect(rect.x, rect.y, rect.width, rect.height);
-            cameraPositionGoal = new Vector3(r.center.x, r.center.y, -10f);
+            Bounds bounds = new Bounds(Vector3.zero,Vector3.zero);
+            foreach (Renderer child in _previewUnityArmatureComp.slotsRoot.GetComponentsInChildren<Renderer>()){
+                bounds.Encapsulate(child.bounds);   
+            }
+            cameraOrthoGoal = bounds.center.y + 1f;
+            cameraPositionGoal = new Vector3(bounds.center.x,bounds.center.y, -10f);
         }
 
         void MouseScroll (Rect position) {
@@ -387,8 +394,8 @@ namespace DragonBones
                     }
                     _nowTime = System.DateTime.Now.Ticks;
                 }
-                Repaint();
             }
+            Repaint();
         }
     }
 }
