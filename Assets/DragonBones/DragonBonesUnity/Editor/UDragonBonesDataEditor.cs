@@ -43,12 +43,23 @@ namespace DragonBones
         private AnimationData _animData;
 
         void OnEnable(){
+            if (EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                return;
+            }
             _unityDragonbonesData = target as UnityDragonBonesData;
             EditorApplication.update -= EditorUpdate;
             EditorApplication.update += EditorUpdate;
             this._nowTime = System.DateTime.Now.Ticks;
-
+            EditorApplication.playmodeStateChanged += OnPlayModeChange;
             InitPreview();
+        }
+
+        void OnPlayModeChange(){
+            if (EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                Selection.activeObject = null;
+            }
         }
 
         public override bool HasPreviewGUI()
@@ -286,6 +297,7 @@ namespace DragonBones
         void OnDestroy()
         {
             EditorApplication.update -= EditorUpdate;
+            EditorApplication.playmodeStateChanged -= OnPlayModeChange;
             DestroyPreviewInstances();
             DestroyPreview();
         }
@@ -304,6 +316,10 @@ namespace DragonBones
 
         public override void OnPreviewGUI(Rect r, GUIStyle background)
         {
+            if (EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                return;
+            }
             InitPreview();
             if (m_PreviewUtility == null || _previewUnityArmatureComp == null || Event.current.type != EventType.Repaint)
             {
